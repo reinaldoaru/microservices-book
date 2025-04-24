@@ -3,7 +3,10 @@ package microservices.book.multiplication.challenge;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,9 @@ public class ChallengeAttemptControllerTest {
 
     @Autowired
     private JacksonTester<ChallengeAttempt> jsonResultAttempt;
+
+    @Autowired
+    private JacksonTester<List<ChallengeAttempt>> jsonResultAttemptList;
 
     @Test
     void postValidResult() throws Exception {
@@ -75,4 +81,24 @@ public class ChallengeAttemptControllerTest {
         then(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
+    @Test
+    void getUserStats() throws Exception {
+        // given
+        User user = new User("john_doe");
+        ChallengeAttempt attempt1 = new ChallengeAttempt(1L, user, 50, 60, 3010, false);
+        ChallengeAttempt attempt2 = new ChallengeAttempt(2L, user, 50, 60, 3051, false);
+        List<ChallengeAttempt> lastAttempts = List.of(attempt1, attempt2);
+
+        given(challengeService.getStatsForUser("john_doe"))
+            .willReturn(lastAttempts);
+
+        // when
+        MockHttpServletResponse response = mvc.perform(
+                get("/attempts").param("alias", "john_doe"))
+            .andReturn().getResponse();
+
+        // then
+        then(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        then(response.getContentAsString()).isEqualTo(jsonResultAttemptList.write(lastAttempts).getJson());
+    }
 }

@@ -1,5 +1,7 @@
 package microservices.book.multiplication.challenge;
 
+import java.util.List;
+
 public interface ChallengeService {
 
     /**
@@ -8,5 +10,10 @@ public interface ChallengeService {
      * @return the resulting {@link ChallengeAttempt} object.
      */
     ChallengeAttempt verifyAttempt(ChallengeAttemptDTO resultAttempt);
+
+    /**
+     * Gets the statistics for a given user.
+     */
+    List<ChallengeAttempt> getStatsForUser(String userAlias);
     
 }
