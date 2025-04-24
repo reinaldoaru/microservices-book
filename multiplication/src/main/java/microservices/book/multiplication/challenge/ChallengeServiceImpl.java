@@ -15,7 +15,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         // We don't use identfiers for now
         User user = new User(null, attemptDTO.getUserAlias());
 
-        ChallengeAttempt checkedAttempt = new ChallengeAttempt(null, user.getId(), attemptDTO.getFactorA(), attemptDTO.getFactorB(), attemptDTO.getGuess(), isCorrect);
+        ChallengeAttempt checkedAttempt = new ChallengeAttempt(null, user, attemptDTO.getFactorA(), attemptDTO.getFactorB(), attemptDTO.getGuess(), isCorrect);
 
         return checkedAttempt;
     }
