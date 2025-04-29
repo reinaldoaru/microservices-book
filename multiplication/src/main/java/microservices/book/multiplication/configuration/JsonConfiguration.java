@@ -10,7 +10,8 @@ import com.fasterxml.jackson.datatype.hibernate5.jakarta.Hibernate5JakartaModule
 public class JsonConfiguration {
 
     @Bean
-    public Module hibernatModule() {
+    public Module hibernateModule() {
         return new Hibernate5JakartaModule();
     }
+    
 }
