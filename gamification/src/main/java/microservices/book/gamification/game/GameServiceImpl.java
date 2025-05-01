@@ -21,6 +21,9 @@ import microservices.book.gamification.game.domain.ScoreCard;
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
 
+    private final ScoreRepository scoreRepository;
+    private final BadgeRepository badgeRepository;
+    
     // Spring injects all the @Component beans in this list.
     private final List<BadgeProcessor> badgeProcessors;
 
@@ -29,7 +32,9 @@ public class GameServiceImpl implements GameService {
         // We give points only if it's correct
         if (challenge.isCorrect()) {
             ScoreCard scoreCard = new ScoreCard(challenge.getUserId(), challenge.getAttemptId());
-            // save
+            
+            scoreRepository.save(scoreCard);
+            
             log.info("User {} scored {} points for attempt id {}", challenge.getUserAlias(), scoreCard.getScore(), challenge.getAttemptId());
 
             List<BadgeCard> badgeCards = processForBadges(challenge);
@@ -49,7 +54,7 @@ public class GameServiceImpl implements GameService {
      * to give new badges incase their conditions are met.
      */
     private List<BadgeCard> processForBadges(final ChallengeSolvedDTO solvedChallenge) {
-        Optional<Integer> optTotalScore = Optional.of(10); // get from BD.
+        Optional<Integer> optTotalScore = scoreRepository.getTotalScoreForUser(solvedChallenge.getUserId());
 
         if (optTotalScore.isEmpty()) return Collections.emptyList();
         
@@ -57,8 +62,13 @@ public class GameServiceImpl implements GameService {
 
         // Gets the total score and existing badges for that user.
         List<ScoreCard> scoreCards = List.of(new ScoreCard(1L, 10L));
+        // scoreRepository.findlByUserIdOrderByScoreTimestampDesc(solvedChallenge.getUserId());
 
-        Set<BadgeType> alreadyGotBadges = Collections.emptySet();
+        Set<BadgeType> alreadyGotBadges = badgeRepository
+                .findByUserIdOrderByBadgeTimestampDesc(solvedChallenge.getUserId())
+                .stream()
+                .map(BadgeCard::getBadgeType)
+                .collect(Collectors.toSet());
 
         // Calls the badge processors for badges thet the user doesn't have yet.
         List<BadgeCard> newBadgeCards = badgeProcessors.stream()
@@ -68,7 +78,7 @@ public class GameServiceImpl implements GameService {
                 .map(badgeType -> new BadgeCard(solvedChallenge.getUserId(), badgeType))
                 .collect(Collectors.toList());
 
-        // saveAll
+        badgeRepository.saveAll(newBadgeCards);
 
         return newBadgeCards;
     }
