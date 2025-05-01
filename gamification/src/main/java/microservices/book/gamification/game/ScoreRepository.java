@@ -43,6 +43,6 @@ public interface ScoreRepository extends CrudRepository<ScoreCard, Long> {
      * @param userId the id of the user.
      * @return a list containing all the ScoreCards for the given user, sorted by most recent.
      */
-    List<ScoreCard> findlByUserIdOrderByScoreTimestampDesc(final Long userId);
+    List<ScoreCard> findByUserIdOrderByScoreTimestampDesc(final Long userId);
     
 }
