@@ -19,6 +19,7 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import microservices.book.multiplication.serviceclients.GamificationServiceClient;
 import microservices.book.multiplication.user.User;
 import microservices.book.multiplication.user.UserRepository;
 
@@ -33,11 +34,15 @@ public class ChallengeServiceTest {
     @Mock
     private ChallengeAttemptRepository challengeAttemptRepository;
 
+    @Mock
+    private GamificationServiceClient gamificationServiceClient;
+
     @BeforeEach
     public void setUp() {
         challengeService = new ChallengeServiceImpl(
             userRepository,
-            challengeAttemptRepository
+            challengeAttemptRepository,
+            gamificationServiceClient
         );
     }
 
@@ -45,7 +50,9 @@ public class ChallengeServiceTest {
     public void checkCorrectAttemptTest() {
         // given
         ChallengeAttemptDTO attemptDTO = new ChallengeAttemptDTO(50, 60, "john_doe", 3000);
+        
         given(challengeAttemptRepository.save(any())).will(returnsFirstArg());
+        given(gamificationServiceClient.sendAttempt(any())).willReturn(true);
 
         // when
         ChallengeAttempt resultAttempt = challengeService.verifyAttempt(attemptDTO);
@@ -55,6 +62,7 @@ public class ChallengeServiceTest {
         // newly added lines
         verify(userRepository).save(new User("john_doe"));
         verify(challengeAttemptRepository).save(resultAttempt);
+        verify(gamificationServiceClient).sendAttempt(resultAttempt);
     }
 
     @Test
@@ -71,6 +79,25 @@ public class ChallengeServiceTest {
         // newly added lines
         verify(userRepository).save(new User("john_doe"));
         verify(challengeAttemptRepository).save(resultAttempt);
+    }
+
+    @Test
+    public void checkAttemptGamificationFailTest() {
+        // given
+        ChallengeAttemptDTO attemptDTO = new ChallengeAttemptDTO(50, 60, "john_doe", 3000);
+        
+        given(challengeAttemptRepository.save(any())).will(returnsFirstArg());
+        given(gamificationServiceClient.sendAttempt(any())).willReturn(false);
+
+        // when
+        ChallengeAttempt resultAttempt = challengeService.verifyAttempt(attemptDTO);
+
+        // then
+        then(resultAttempt.isCorrect()).isTrue();
+        // newly added lines
+        verify(userRepository).save(new User("john_doe"));
+        verify(challengeAttemptRepository).save(resultAttempt);
+        verify(gamificationServiceClient).sendAttempt(resultAttempt);
     }
 
     @Test
