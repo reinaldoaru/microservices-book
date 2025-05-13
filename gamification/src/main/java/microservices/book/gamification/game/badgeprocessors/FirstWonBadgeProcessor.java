@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import microservices.book.gamification.challenge.ChallengeSolvedDTO;
+import microservices.book.gamification.challenge.ChallengeSolvedEvent;
 import microservices.book.gamification.game.domain.BadgeType;
 import microservices.book.gamification.game.domain.ScoreCard;
 
@@ -14,7 +14,7 @@ public class FirstWonBadgeProcessor implements BadgeProcessor {
 
     @Override
     public Optional<BadgeType> processForOptionalBadge(int currentScore, List<ScoreCard> scoreCards,
-            ChallengeSolvedDTO solved) {
+            ChallengeSolvedEvent solved) {
         return scoreCards.size() == 1 ?
                 Optional.of(BadgeType.FIRST_WON) :
                 Optional.empty();

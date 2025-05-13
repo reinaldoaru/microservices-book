@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import microservices.book.multiplication.serviceclients.GamificationServiceClient;
 import microservices.book.multiplication.user.User;
 import microservices.book.multiplication.user.UserRepository;
 
@@ -17,7 +16,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     private final UserRepository userRepository;
     private final ChallengeAttemptRepository challengeAttemptRepository;
-    private final GamificationServiceClient gamificationServiceClient;
+    private final ChallengeEventPub challengeEventPub; // replaced.
 
     @Override
     public ChallengeAttempt verifyAttempt(ChallengeAttemptDTO attemptDTO) {
@@ -38,7 +37,8 @@ public class ChallengeServiceImpl implements ChallengeService {
         // Stores the attempt.
         ChallengeAttempt storedAttempt = challengeAttemptRepository.save(checkedAttempt);
 
-        gamificationServiceClient.sendAttempt(storedAttempt);
+        // Publishes an event to notify potentially inerested subscribers.
+        challengeEventPub.challengeSolved(storedAttempt);
 
         return storedAttempt;
     }
