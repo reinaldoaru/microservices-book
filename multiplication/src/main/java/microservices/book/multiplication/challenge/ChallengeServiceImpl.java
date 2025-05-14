@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import microservices.book.multiplication.user.User;
@@ -18,6 +19,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final ChallengeAttemptRepository challengeAttemptRepository;
     private final ChallengeEventPub challengeEventPub; // replaced.
 
+    @Transactional
     @Override
     public ChallengeAttempt verifyAttempt(ChallengeAttemptDTO attemptDTO) {
         // Check if the user already exists for that alias, otherwise create it.

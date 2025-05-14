@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import microservices.book.gamification.challenge.ChallengeSolvedEvent;
@@ -27,6 +28,7 @@ public class GameServiceImpl implements GameService {
     // Spring injects all the @Component beans in this list.
     private final List<BadgeProcessor> badgeProcessors;
 
+    @Transactional
     @Override
     public GameResult newAttemptForUser(ChallengeSolvedEvent challenge) {
         // We give points only if it's correct
