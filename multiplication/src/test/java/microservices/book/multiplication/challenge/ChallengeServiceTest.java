@@ -3,6 +3,7 @@ package microservices.book.multiplication.challenge;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -19,7 +20,6 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import microservices.book.multiplication.serviceclients.GamificationServiceClient;
 import microservices.book.multiplication.user.User;
 import microservices.book.multiplication.user.UserRepository;
 
@@ -35,14 +35,14 @@ public class ChallengeServiceTest {
     private ChallengeAttemptRepository challengeAttemptRepository;
 
     @Mock
-    private GamificationServiceClient gamificationServiceClient;
+    private ChallengeEventPub challengeEventPub;
 
     @BeforeEach
     public void setUp() {
         challengeService = new ChallengeServiceImpl(
             userRepository,
             challengeAttemptRepository,
-            gamificationServiceClient
+            challengeEventPub
         );
     }
 
@@ -52,7 +52,7 @@ public class ChallengeServiceTest {
         ChallengeAttemptDTO attemptDTO = new ChallengeAttemptDTO(50, 60, "john_doe", 3000);
         
         given(challengeAttemptRepository.save(any())).will(returnsFirstArg());
-        given(gamificationServiceClient.sendAttempt(any())).willReturn(true);
+        willDoNothing().given(challengeEventPub).challengeSolved(any());
 
         // when
         ChallengeAttempt resultAttempt = challengeService.verifyAttempt(attemptDTO);
@@ -62,7 +62,7 @@ public class ChallengeServiceTest {
         // newly added lines
         verify(userRepository).save(new User("john_doe"));
         verify(challengeAttemptRepository).save(resultAttempt);
-        verify(gamificationServiceClient).sendAttempt(resultAttempt);
+        verify(challengeEventPub).challengeSolved(resultAttempt);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ChallengeServiceTest {
         ChallengeAttemptDTO attemptDTO = new ChallengeAttemptDTO(50, 60, "john_doe", 3000);
         
         given(challengeAttemptRepository.save(any())).will(returnsFirstArg());
-        given(gamificationServiceClient.sendAttempt(any())).willReturn(false);
+        willDoNothing().given(challengeEventPub).challengeSolved(any());
 
         // when
         ChallengeAttempt resultAttempt = challengeService.verifyAttempt(attemptDTO);
@@ -97,7 +97,7 @@ public class ChallengeServiceTest {
         // newly added lines
         verify(userRepository).save(new User("john_doe"));
         verify(challengeAttemptRepository).save(resultAttempt);
-        verify(gamificationServiceClient).sendAttempt(resultAttempt);
+        verify(challengeAttemptRepository).save(resultAttempt);
     }
 
     @Test

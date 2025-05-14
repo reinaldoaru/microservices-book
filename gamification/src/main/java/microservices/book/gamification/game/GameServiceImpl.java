@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import microservices.book.gamification.challenge.ChallengeSolvedDTO;
+import microservices.book.gamification.challenge.ChallengeSolvedEvent;
 import microservices.book.gamification.game.badgeprocessors.BadgeProcessor;
 import microservices.book.gamification.game.domain.BadgeCard;
 import microservices.book.gamification.game.domain.BadgeType;
@@ -27,15 +28,16 @@ public class GameServiceImpl implements GameService {
     // Spring injects all the @Component beans in this list.
     private final List<BadgeProcessor> badgeProcessors;
 
+    @Transactional
     @Override
-    public GameResult newAttemptForUser(ChallengeSolvedDTO challenge) {
+    public GameResult newAttemptForUser(ChallengeSolvedEvent challenge) {
         // We give points only if it's correct
         if (challenge.isCorrect()) {
             ScoreCard scoreCard = new ScoreCard(challenge.getUserId(), challenge.getAttemptId());
             
             scoreRepository.save(scoreCard);
             
-            log.info("User {} scored {} points for attempt id {}", challenge.getUserAlias(), scoreCard.getScore(), challenge.getAttemptId());
+            log.info("User scored {} points for attempt id {}", scoreCard.getScore(), challenge.getAttemptId());
 
             List<BadgeCard> badgeCards = processForBadges(challenge);
             
@@ -43,7 +45,7 @@ public class GameServiceImpl implements GameService {
                     .map(BadgeCard::getBadgeType)
                     .collect(Collectors.toList()));
         } else {
-            log.info("Attempt id {} is not correct. User {} does not get score.", challenge.getAttemptId(), challenge.getUserAlias());
+            log.info("Attempt id {} is not correct. User does not get score.", challenge.getAttemptId());
 
             return new GameResult(0, List.of());
         }
@@ -53,7 +55,7 @@ public class GameServiceImpl implements GameService {
      * Checks the total score and the different score cards obtained
      * to give new badges incase their conditions are met.
      */
-    private List<BadgeCard> processForBadges(final ChallengeSolvedDTO solvedChallenge) {
+    private List<BadgeCard> processForBadges(final ChallengeSolvedEvent solvedChallenge) {
         Optional<Integer> optTotalScore = scoreRepository.getTotalScoreForUser(solvedChallenge.getUserId());
 
         if (optTotalScore.isEmpty()) return Collections.emptyList();
